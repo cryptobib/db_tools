@@ -15,6 +15,7 @@ import bibyml
 import logging
 
 import header
+import config
 from config import *
 
 logging.basicConfig(level=logging.DEBUG)
@@ -52,7 +53,7 @@ def gen(out, abbrev, short=0):
             write_abbrev(v, path+[k])
 
 
-    out.write(header.get_header("gen.py"))
+    out.write(header.get_header(config, "gen.py"))
 
     write_abbrev(abbrev)
 

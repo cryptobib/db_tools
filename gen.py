@@ -23,8 +23,10 @@ from confs_years import *
 import logging
 
 import header
+import config
 from config import *
 
+mybibtex.generator.config = config
 logging.basicConfig(level=logging.DEBUG)
 
 def gen_crypto_bib(db, confs_years, expand_crossrefs):
@@ -34,7 +36,7 @@ def gen_crypto_bib(db, confs_years, expand_crossrefs):
         outname = "db/crypto.bib"
 
     with open(outname, "w") as out:
-        out.write(header.get_header("gen.py", confs_years))
+        out.write(header.get_header(config, "gen.py", confs_years))
     
         mybibtex.generator.bibtex_gen(out, db, expand_crossrefs=expand_crossrefs, include_crossrefs=not expand_crossrefs)
 
@@ -51,7 +53,7 @@ def main():
     parser.parse_file("db/crypto_db.bib")
     db = parser.parse_file("db/crypto_conf_list.bib")
 
-    confs_years = get_confs_years_inter(db)
+    confs_years = get_confs_years_inter(db, confs_missing_years)
 
     gen_crypto_bib(db, confs_years, True)
     gen_crypto_bib(db, confs_years, False)
