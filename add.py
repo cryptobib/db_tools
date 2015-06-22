@@ -44,7 +44,7 @@ def add(filenames):
         for conf in sorted(conf_years.iterkeys()):
             (start, end) = conf_years[conf]
             out.write("%    {}:{}{} - {}\n".format(conf, " "*(16-len(conf)-1), start, end))
-            out.write("\n")
+        out.write("\n")
         out.write("\n")
     
         mybibtex.generator.bibtex_gen(out, db)
@@ -54,7 +54,7 @@ def main():
     parser.add_argument("filenames", metavar="file.bib", type=str, help="list of bib files to add to crypto_db.bib", nargs="*")
     args = parser.parse_args()
 
-    shutil.copy("crypto_db.bib", "crypto_db.bib.{:0>12d}".format(int(time.time())))
+    shutil.copy("db/crypto_db.bib", "db/crypto_db.bib.{:0>12d}".format(int(time.time())))
 
     add(args.filenames)
     
