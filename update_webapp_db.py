@@ -128,13 +128,13 @@ def update_entries(db, cryptodb):
             if "pages" in fields:
                 pages = fields["pages"]
                 if pages.isdigit():
-                    start_page = int(pages)
+                    start_page = pages
                 else:
                     a = pages[1:-1].split("--")
                     if len(a) == 1 or len(a) == 2:
-                        start_page = int(a[0])
+                        start_page = a[0]
                     if len(a) == 2:
-                        end_page = int(a[1])
+                        end_page = a[1]
 
             fields["start_page"] = start_page
             fields["end_page"]   = end_page
