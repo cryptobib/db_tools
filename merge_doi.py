@@ -1,0 +1,165 @@
+#!/usr/bin/env python2
+"""
+This script needs to be run in the root folder containing the
+folders "lib" and "db"
+"""
+
+import sys
+import os
+
+scriptdir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(os.path.join(scriptdir, "..", "lib"))
+sys.path.append(os.path.join(scriptdir, "..", "db"))
+
+import mybibtex.parser
+import mybibtex.generator
+import confs_years
+
+import logging
+import shutil
+import argparse
+import time
+
+import config
+from config import *
+
+mybibtex.generator.config = config
+logging.basicConfig(level=logging.DEBUG)
+
+color_texts = {
+    "Error": "\x1b[6;30;41mError\x1b[0m",
+    "Warning": "\x1b[6;30;43mWarning\x1b[0m",
+    "Success": "\x1b[6;30;42mSuccess\x1b[0m",
+}
+
+
+def get_entry_by_pages(db, entry_doi):
+    """ Try to find the entry in db using pages and crossref """
+
+    if "crossref" not in entry_doi.fields:
+        return None, None
+
+    if "pages" not in entry_doi.fields:
+        return None, None
+
+    for (key, entry) in db.entries.iteritems():
+        if "crossref" not in entry.fields or entry.fields["crossref"].expand() != entry_doi.fields["crossref"].expand():
+            continue
+        if "pages" not in entry.fields or entry.fields["pages"].expand() != entry_doi.fields["pages"].expand():
+            continue
+        return key, entry
+
+    return None, None
+
+def merge_doi_db(db, db_doi):
+    myfilter = mybibtex.generator.FilterPaper()
+    entries_doi = dict(myfilter.filter(db_doi.entries))
+
+    for (key, entry_doi) in mybibtex.generator.SortConfYearPage().sort(entries_doi.iteritems()):
+        key_str = unicode(key)
+
+        if key not in db.entries:
+            print(u"{}: Key {} not found in DB ".format(color_texts["Warning"], key))
+            key_db, entry = get_entry_by_pages(db, entry_doi)
+            if key_db != None:
+                print(u"    {}: Found instead {}:".format(color_texts["Success"], unicode(key_db)))
+                print(u"          import title: {}".format(entry_doi.fields["title"].expand()))
+                print(u"          db title:     {}".format(entry.fields["title"].expand()))
+            else:
+                print(u"    {}: Could not find any match at all.".format(color_texts["Error"]))
+                continue
+        else:
+            entry = db.entries[key]
+
+        if "pages" not in entry.fields:
+            print(u"{}: Key {} has no \"pages\" field in crypto_db => not merged". format(
+                color_texts["Error"], key_str
+            ))
+            continue
+
+        if "pages" not in entry_doi.fields:
+            print(u"{}: Key {} has no \"pages\" field in import => not merged". format(
+                color_texts["Error"], key_str
+            ))
+            continue
+
+        if "doi" not in entry_doi.fields:
+            print(u"{}: Key {} has no \"doi\" field in import => not merged". format(
+                color_texts["Error"], key_str
+            ))
+            continue
+
+        if "pages" in entry.fields and "pages" in entry_doi.fields and \
+                entry.fields["pages"].expand() != entry_doi.fields["pages"].expand():
+            print(u"{}: Key {} has different pages in crypto_db ({}) vs import ({}) => not merged". format(
+                color_texts["Error"], key_str,
+                entry.fields["pages"].expand(),
+                entry_doi.fields["pages"].expand()
+            ))
+            continue
+
+        nb_authors = len(entry.fields["author"].expand().split(" and"))
+        nb_authors_doi = len(entry_doi.fields["author"].expand().split(" and"))
+        if nb_authors != nb_authors_doi:
+            print(u"{}: Key {} has different number of authors in crypto_db ({}: {}) vs import ({}: {}) => not merged". format(
+                color_texts["Error"], key_str,
+                nb_authors, entry.fields["author"].expand().replace("\n", " "),
+                nb_authors_doi, entry_doi.fields["author"].expand().replace("\n", " ")
+            ))
+            continue
+
+        if "doi" in entry.fields and entry.fields["doi"].expand() != entry_doi.fields["doi"].expand():
+            print(u"{}: Key {} has different DOI in crypto_db ({}) vs import ({}) => not merged".format(
+                color_texts["Error"], key_str,
+                entry.fields["doi"].expand(),
+                entry_doi.fields["doi"].expand()
+            ))
+            continue
+
+        entry.fields["doi"] = entry_doi.fields["doi"]
+
+
+def merge_doi(filenames):
+    parser_doi = mybibtex.parser.Parser()
+    parser_doi.parse_file("db/abbrev0.bib")
+    db_doi = parser_doi.parse_file("db/crypto_conf_list.bib")
+
+    for filename in filenames:
+        db_doi = parser_doi.parse_file(filename)
+
+    parser = mybibtex.parser.Parser()
+    parser.parse_file("db/abbrev0.bib")
+    parser.parse_file("db/crypto_db.bib")
+    db = parser.parse_file("db/crypto_conf_list.bib")
+
+    merge_doi_db(db, db_doi)
+
+    conf_years = confs_years.get_confs_years_inter(db, confs_missing_years)
+
+    with open("db/crypto_db.bib", "w") as out:
+        out.write("% FILE GENERATED by add.py\n")
+        out.write("% DO NOT MODIFY MANUALLY\n")
+        out.write("\n")
+        out.write("\n")
+        for conf in sorted(conf_years.iterkeys()):
+            (start, end) = conf_years[conf]
+            out.write("%    {}:{}{} - {}\n".format(conf, " " * (16 - len(conf) - 1), start, end))
+        out.write("\n")
+        out.write("\n")
+
+        mybibtex.generator.bibtex_gen(out, db)
+
+
+def main():
+    parser = argparse.ArgumentParser("Merge the DOI from the filenames imported files (using db_import/import.py). Verify pages and key are identical before merging the DOI. Useful to add DOI to papers already in CryptoBib.")
+    parser.add_argument("filenames", metavar="file.bib", type=str, help="list of bib files to add to crypto_db.bib",
+                        nargs="*")
+    args = parser.parse_args()
+
+    shutil.copy("db/crypto_db.bib", "db/crypto_db.bib.{:0>12d}".format(int(time.time())))
+
+    merge_doi(args.filenames)
+
+
+if __name__ == "__main__":
+    main()
