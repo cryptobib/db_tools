@@ -142,9 +142,6 @@ def update_entries(db, cryptodb):
             if "years" in fields:
                 fields["years"] = int(fields["years"])
 
-            if "number" in fields:
-                fields["number"] = int(fields["number"])
-
             if "pages" in fields:
                 del fields["pages"]
 
