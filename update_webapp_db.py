@@ -59,7 +59,7 @@ def update_changes(db):
 
     changes = []
 
-    fin = file("../db/changes.txt")
+    fin = open("../db/changes.txt")
     lineno = 1
     for line in fin:
         if lineno == 1 and line[0] != "*":
@@ -100,8 +100,8 @@ def update_confs(db, confs_years):
             "end_year":   confs_years[confkey][1]
         }
         for (confkey, conf) in sorted(
-                config.confs.iteritems(),
-                key = lambda (k,x): ("a-" if x["type"] == "conf" else "b-") + x["name"]
+                iter(config.confs.items()),
+                key = lambda k_x: ("a-" if k_x[1]["type"] == "conf" else "b-") + k_x[1]["name"]
         )
     ]
     db.conf.truncate()
@@ -114,7 +114,7 @@ def update_entries(db, cryptodb):
     def aux(cryptodb, entries):
         for key, entry in entries:
             fields_orig = mybibtex.generator.bibtex_entry_format_fields(db, key, entry, expand_crossrefs=False)
-            fields = {k: v.to_bib(expand=False) for (k,v) in fields_orig.iteritems()}
+            fields = {k: v.to_bib(expand=False) for (k,v) in fields_orig.items()}
 
             fields["type"] = entry.type.lower()
             
@@ -152,31 +152,31 @@ def update_entries(db, cryptodb):
         db.commit()
     
     entries = dict(mybibtex.generator.FilterPaper().filter(cryptodb.entries))
-    aux(cryptodb, mybibtex.generator.SortConfYearPage().sort(entries.iteritems()))
+    aux(cryptodb, mybibtex.generator.SortConfYearPage().sort(iter(entries.items())))
 
     crossrefs = dict()
-    for k, e in entries.iteritems():
+    for k, e in entries.items():
         if "crossref" in e.fields:
             crossref = mybibtex.generator.EntryKey.from_string(e.fields["crossref"].expand())
             if crossref not in crossrefs:
                 crossrefs[crossref] = cryptodb.entries[crossref]
-    aux(cryptodb, mybibtex.generator.SortConfYearPage().sort(crossrefs.iteritems()))
+    aux(cryptodb, mybibtex.generator.SortConfYearPage().sort(iter(crossrefs.items())))
 
 def main():
     app = Storage(gluon.shell.env("cryptobib", import_models = True))
 
-    print "* read crypto_db.bib"
+    print("* read crypto_db.bib")
     parser = mybibtex.parser.Parser()
     parser.parse_file("../db/abbrev0.bib")
     parser.parse_file("../db/crypto_db.bib")
     cryptodb = parser.parse_file("../db/crypto_conf_list.bib")
     confs_years = get_confs_years_inter(cryptodb, confs_missing_years)
 
-    print "* update changes table"
+    print("* update changes table")
     update_changes(app.db)
-    print "* update confs table"
+    print("* update confs table")
     update_confs(app.db, confs_years)
-    print "* update entries table"
+    print("* update entries table")
     update_entries(app.db, cryptodb)
 
 

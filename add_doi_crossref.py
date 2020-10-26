@@ -20,8 +20,8 @@ import logging
 import shutil
 import argparse
 import time
-import urllib
-import urllib2
+import urllib.request, urllib.parse, urllib.error
+import urllib.request, urllib.error, urllib.parse
 import json
 
 import config
@@ -42,7 +42,7 @@ def levenshtein_distance(s1, s2):
     if len(s1) > len(s2):
         s1, s2 = s2, s1
 
-    distances = range(len(s1) + 1)
+    distances = list(range(len(s1) + 1))
     for i2, c2 in enumerate(s2):
         distances_ = [i2 + 1]
         for i1, c1 in enumerate(s1):
@@ -96,7 +96,7 @@ def get_crossref_url(entry):
     query_conf = []
     if "booktitle" in entry.fields:
         query_conf = [("query.container-title", entry.fields["booktitle"].expand())]
-    return "https://api.crossref.org/works?" + urllib.urlencode([
+    return "https://api.crossref.org/works?" + urllib.parse.urlencode([
         ("query.author", get_first_author(entry)),
         # ("query.bibliographic", entry.fields["year"].expand()), # removing it because does not work for all Springer books
         ("query.title", entry.fields["title"].expand())
@@ -117,7 +117,7 @@ def get_matching_doi(entry, j):
 
 def get_doi_entry(entry):
     url = get_crossref_url(entry)
-    f = urllib2.urlopen(url)
+    f = urllib.request.urlopen(url)
     j = json.load(f)
     return get_matching_doi(entry, j)
 
@@ -132,29 +132,29 @@ def add_doi(check_known_doi=False, filter_conf=None):
     if filter_conf:
         myfilter = mybibtex.generator.FilterConf(filter_conf, myfilter)
     entries = dict(myfilter.filter(db.entries))
-    for (keybib, entry) in entries.iteritems():
-        key = unicode(keybib)
+    for (keybib, entry) in entries.items():
+        key = str(keybib)
 
         if key.startswith("EPRINT"):
             continue
 
-        if u"doi" in entry.fields and not check_known_doi:
+        if "doi" in entry.fields and not check_known_doi:
            continue # doi already there
 
-        print("Searching DOI for {}".format(key))
+        print(("Searching DOI for {}".format(key)))
 
         doi = get_doi_entry(entry)
 
         if doi == None:
-            print("    {}: cannot find DOI for {}".format(color_texts["Warning"], key))
-            print("    tried: {}".format(get_crossref_url(entry)))
+            print(("    {}: cannot find DOI for {}".format(color_texts["Warning"], key)))
+            print(("    tried: {}".format(get_crossref_url(entry))))
             continue
 
         if doi != None and "doi" in entry.fields and doi != entry.fields["doi"].expand():
-            print("    {}: expected {} but got {}".format(color_texts["Error"], entry.fields["doi"].expand(), doi))
+            print(("    {}: expected {} but got {}".format(color_texts["Error"], entry.fields["doi"].expand(), doi)))
             continue
 
-        print("    {}: found DOI {}".format(color_texts["Success"], doi))
+        print(("    {}: found DOI {}".format(color_texts["Success"], doi)))
 
         if "doi" in entry.fields:
             print("    (matched known DOI)")
@@ -168,7 +168,7 @@ def add_doi(check_known_doi=False, filter_conf=None):
         out.write("% DO NOT MODIFY MANUALLY\n")
         out.write("\n")
         out.write("\n")
-        for conf in sorted(conf_years.iterkeys()):
+        for conf in sorted(conf_years.keys()):
             (start, end) = conf_years[conf]
             out.write("%    {}:{}{} - {}\n".format(conf, " " * (16 - len(conf) - 1), start, end))
         out.write("\n")

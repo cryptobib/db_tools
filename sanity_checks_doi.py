@@ -4,7 +4,7 @@ This script needs to be run in the root folder containing the
 folders "lib" and "db"
 """
 
-from __future__ import print_function
+
 
 import collections
 import sys
@@ -89,13 +89,13 @@ def check_doi(args):
 
     entries_per_book = collections.OrderedDict()
 
-    for (keybib, entry) in mybibtex.generator.SortConfYearPage().sort(entries.iteritems()):
-        key = unicode(keybib)
+    for (keybib, entry) in mybibtex.generator.SortConfYearPage().sort(iter(entries.items())):
+        key = str(keybib)
 
         if key.startswith("EPRINT"):
             continue
 
-        if u"crossref" not in entry.fields:
+        if "crossref" not in entry.fields:
             continue
 
         book = entry.fields["crossref"].expand()
@@ -106,7 +106,7 @@ def check_doi(args):
 
     nb = 0
     nb_checked = 0
-    for (book, entries) in entries_per_book.iteritems():
+    for (book, entries) in entries_per_book.items():
         nb += 1
         if is_lncs(db, entries[0]):
             check_doi_lncs_book(book, filter_doi(entries), args.verbose)

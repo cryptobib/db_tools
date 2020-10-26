@@ -47,7 +47,7 @@ def gen(out, abbrev, short=0):
                 " "*(max(0, 32-len(key)-11)), 
                 val
             ))
-        for k,v in d.iteritems():
+        for k,v in d.items():
             if k in ["", "@0", "@1", "@2", "@3"]:
                 continue
             write_abbrev(v, path+[k])

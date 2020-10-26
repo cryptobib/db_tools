@@ -42,7 +42,7 @@ def get_entry_by_pages(db, entry_doi):
     if "pages" not in entry_doi.fields:
         return None, None
 
-    for (key, entry) in db.entries.iteritems():
+    for (key, entry) in db.entries.items():
         if "crossref" not in entry.fields or entry.fields["crossref"].expand() != entry_doi.fields["crossref"].expand():
             continue
         if "pages" not in entry.fields or entry.fields["pages"].expand() != entry_doi.fields["pages"].expand():
@@ -55,65 +55,65 @@ def merge_doi_db(db, db_doi):
     myfilter = mybibtex.generator.FilterPaper()
     entries_doi = dict(myfilter.filter(db_doi.entries))
 
-    for (key, entry_doi) in mybibtex.generator.SortConfYearPage().sort(entries_doi.iteritems()):
-        key_str = unicode(key)
+    for (key, entry_doi) in mybibtex.generator.SortConfYearPage().sort(iter(entries_doi.items())):
+        key_str = str(key)
 
         if key not in db.entries:
-            print(u"{}: Key {} not found in DB ".format(color_texts["Warning"], key))
+            print(("{}: Key {} not found in DB ".format(color_texts["Warning"], key)))
             key_db, entry = get_entry_by_pages(db, entry_doi)
             if key_db != None:
-                print(u"    {}: Found instead {}:".format(color_texts["Success"], unicode(key_db)))
-                print(u"          import title: {}".format(entry_doi.fields["title"].expand()))
-                print(u"          db title:     {}".format(entry.fields["title"].expand()))
+                print(("    {}: Found instead {}:".format(color_texts["Success"], str(key_db))))
+                print(("          import title: {}".format(entry_doi.fields["title"].expand())))
+                print(("          db title:     {}".format(entry.fields["title"].expand())))
             else:
-                print(u"    {}: Could not find any match at all.".format(color_texts["Error"]))
+                print(("    {}: Could not find any match at all.".format(color_texts["Error"])))
                 continue
         else:
             entry = db.entries[key]
 
         if "pages" not in entry.fields:
-            print(u"{}: Key {} has no \"pages\" field in crypto_db => not merged". format(
+            print(("{}: Key {} has no \"pages\" field in crypto_db => not merged". format(
                 color_texts["Error"], key_str
-            ))
+            )))
             continue
 
         if "pages" not in entry_doi.fields:
-            print(u"{}: Key {} has no \"pages\" field in import => not merged". format(
+            print(("{}: Key {} has no \"pages\" field in import => not merged". format(
                 color_texts["Error"], key_str
-            ))
+            )))
             continue
 
         if "doi" not in entry_doi.fields:
-            print(u"{}: Key {} has no \"doi\" field in import => not merged". format(
+            print(("{}: Key {} has no \"doi\" field in import => not merged". format(
                 color_texts["Error"], key_str
-            ))
+            )))
             continue
 
         if "pages" in entry.fields and "pages" in entry_doi.fields and \
                 entry.fields["pages"].expand() != entry_doi.fields["pages"].expand():
-            print(u"{}: Key {} has different pages in crypto_db ({}) vs import ({}) => not merged". format(
+            print(("{}: Key {} has different pages in crypto_db ({}) vs import ({}) => not merged". format(
                 color_texts["Error"], key_str,
                 entry.fields["pages"].expand(),
                 entry_doi.fields["pages"].expand()
-            ))
+            )))
             continue
 
         nb_authors = len(entry.fields["author"].expand().split(" and"))
         nb_authors_doi = len(entry_doi.fields["author"].expand().split(" and"))
         if nb_authors != nb_authors_doi:
-            print(u"{}: Key {} has different number of authors in crypto_db ({}: {}) vs import ({}: {}) => not merged". format(
+            print(("{}: Key {} has different number of authors in crypto_db ({}: {}) vs import ({}: {}) => not merged". format(
                 color_texts["Error"], key_str,
                 nb_authors, entry.fields["author"].expand().replace("\n", " "),
                 nb_authors_doi, entry_doi.fields["author"].expand().replace("\n", " ")
-            ))
+            )))
             continue
 
         if "doi" in entry.fields and entry.fields["doi"].expand() != entry_doi.fields["doi"].expand():
-            print(u"{}: Key {} has different DOI in crypto_db ({}) vs import ({}) => not merged".format(
+            print(("{}: Key {} has different DOI in crypto_db ({}) vs import ({}) => not merged".format(
                 color_texts["Error"], key_str,
                 entry.fields["doi"].expand(),
                 entry_doi.fields["doi"].expand()
-            ))
+            )))
             continue
 
         entry.fields["doi"] = entry_doi.fields["doi"]
@@ -141,7 +141,7 @@ def merge_doi(filenames):
         out.write("% DO NOT MODIFY MANUALLY\n")
         out.write("\n")
         out.write("\n")
-        for conf in sorted(conf_years.iterkeys()):
+        for conf in sorted(conf_years.keys()):
             (start, end) = conf_years[conf]
             out.write("%    {}:{}{} - {}\n".format(conf, " " * (16 - len(conf) - 1), start, end))
         out.write("\n")

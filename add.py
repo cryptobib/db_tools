@@ -41,7 +41,7 @@ def add(filenames):
         out.write("% DO NOT MODIFY MANUALLY\n")
         out.write("\n")
         out.write("\n")
-        for conf in sorted(conf_years.iterkeys()):
+        for conf in sorted(conf_years.keys()):
             (start, end) = conf_years[conf]
             out.write("%    {}:{}{} - {}\n".format(conf, " "*(16-len(conf)-1), start, end))
         out.write("\n")
