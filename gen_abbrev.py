@@ -58,7 +58,7 @@ def gen(out, abbrev, short=0):
     write_abbrev(abbrev)
 
 def main():
-    abbrev = bibyml.parse(file("db/abbrev.bibyml"))
+    abbrev = bibyml.parse(open("db/abbrev.bibyml"))
     for short in range(4):
         with open("db/abbrev{}.bib".format(short), "w") as out:
             gen(out, abbrev, short=short)
