@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 This script needs to be run in the root folder containing the
 folders "lib" and "db"
@@ -6,6 +6,7 @@ folders "lib" and "db"
 
 import sys
 import os
+
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(scriptdir, "..", "lib"))
 sys.path.append(os.path.join(scriptdir, "..", "db"))
@@ -25,7 +26,8 @@ from config import *
 mybibtex.generator.config = config
 logging.basicConfig(level=logging.DEBUG)
 
-def add(filenames):
+
+def add(filenames: list[str]):
     parser = mybibtex.parser.Parser()
     parser.parse_file("db/abbrev0.bib")
     parser.parse_file("db/crypto_db.bib")
@@ -48,6 +50,7 @@ def add(filenames):
         out.write("\n")
     
         mybibtex.generator.bibtex_gen(out, db)
+
 
 def main():
     parser = argparse.ArgumentParser()

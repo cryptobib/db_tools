@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 This script updates the database of the web server using
   db/abbrev0.bib
@@ -10,9 +10,10 @@ This script updates the database of the web server using
   db/crypto_db_misc.bib
   db/changes.txt
 
-WARNING: THIS SCRIPT NEEDS TO BE EXECUTED in the ROOT folder of the cryptobib project AND web2py needs to installed as explained in webapp/README.md
+WARNING: THIS SCRIPT NEEDS TO BE EXECUTED in the ROOT folder of the cryptobib project
+   AND web2py needs to installed as explained in webapp/README.md
 
-In addition, it may necessary to clear the cache of the web server or to restart it, after updating storage.sqlite.
+In addition, it may be necessary to clear the cache of the web server or to restart it, after updating storage.sqlite.
 Please read README.md for details.
 """
 
@@ -43,6 +44,7 @@ import gluon.shell
 from gluon.storage import Storage
 
 _re_date = re.compile(r"^\s*(\d\d\d\d)-(\d\d)-(\d\d)\s*$")
+
 
 def update_changes(db):
     """
@@ -89,6 +91,7 @@ def update_changes(db):
     db.change.bulk_insert(changes_bulk)
     db.commit()
 
+
 def update_confs(db, confs_years):
     confs = [
         {
@@ -107,6 +110,7 @@ def update_confs(db, confs_years):
     db.conf.truncate()
     db.conf.bulk_insert(confs)
     db.commit()
+
 
 def update_entries(db, cryptodb):
     db.entry.truncate()
@@ -161,6 +165,7 @@ def update_entries(db, cryptodb):
             if crossref not in crossrefs:
                 crossrefs[crossref] = cryptodb.entries[crossref]
     aux(cryptodb, mybibtex.generator.SortConfYearPage().sort(iter(crossrefs.items())))
+
 
 def main():
     app = Storage(gluon.shell.env("cryptobib", import_models = True))

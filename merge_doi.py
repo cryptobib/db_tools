@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python3
 """
 This script needs to be run in the root folder containing the
 folders "lib" and "db"
