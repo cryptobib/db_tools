@@ -23,6 +23,7 @@ scriptdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(".")
 sys.path.append(os.path.join(scriptdir, "..", "lib"))
 sys.path.append(os.path.join(scriptdir, "..", "db"))
+sys.path.append(os.path.join(scriptdir, "..", "web2py"))
 
 from mybibtex import tools
 import mybibtex.parser
