@@ -4,8 +4,12 @@ This script needs to be run in the root folder containing the
 folders "lib" and "db"
 """
 
-import sys
+import argparse
+import logging
 import os
+import shutil
+import sys
+import time
 
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(scriptdir, "..", "lib"))
@@ -15,13 +19,8 @@ import mybibtex.parser
 import mybibtex.generator
 import confs_years
 
-import logging
-import shutil
-import argparse
-import time
-
 import config
-from config import *
+from config import confs_missing_years
 
 mybibtex.generator.config = config
 logging.basicConfig(level=logging.DEBUG)
@@ -31,10 +30,8 @@ def add(filenames: list[str]):
     parser = mybibtex.parser.Parser()
     parser.parse_file("db/abbrev0.bib")
     parser.parse_file("db/crypto_db.bib")
-    db = parser.parse_file("db/crypto_conf_list.bib")
-
-    for filename in filenames:
-        db = parser.parse_file(filename)
+    parser.parse_file("db/crypto_conf_list.bib")
+    db = parser.parse_files(filenames)
 
     conf_years = confs_years.get_confs_years_inter(db, confs_missing_years)
 
