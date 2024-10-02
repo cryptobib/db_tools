@@ -22,7 +22,6 @@ from confs_years import get_confs_years_inter
 
 import header
 import config
-from config import confs_missing_years
 
 mybibtex.generator.config = config
 
@@ -65,48 +64,41 @@ def namestrip(s):
     return re.sub('\\\\.', '', s).strip()
 
 
-def fix_von_prefix_person(person):
-    prelast = person.get_part_as_text('prelast')
+def fix_lineage(person):
     lastname = person.get_part_as_text('last')
-    orig_name = prelast + ' ' + lastname if prelast else lastname
-
-    """
-    Current exceptions are:
-Exception:   {abhi} {shelat}
-Exception:  Bruno {d'Ausbourg}
-Exception:  Sabah {al-Binali}
-    """
+    lineage = person.get_part_as_text('lineage')
+    orig_name = lastname + ' ' + lineage if lineage else lastname
 
     moves = 0
-    while re.match('^{\'?[a-z]', lastname):
+    while re.search(' (Jr\\.|Sr\\.|II|III|IV)}?$', lastname):
+        lastname = person._last[-1]
         moves += 1
-        idx = person._last[0].find(' ')
-        if idx == -1:
-            # Should be one of the names above.
-            print("Exception: ", person)
-            return
+        idx = lastname.rfind(' ')
+        assert idx >= 0 and lastname[-1] == '}'
 
-        person._prelast.append(person._last[0][1:idx])  # person._last[0]
-        person._last[0] = '{' + person._last[0][idx + 1:]
-        # person._last = person._last[1:]
+        person._lineage.append(lastname[idx + 1:-1])
+        person._last[-1] = lastname[:idx] + '}'
         lastname = person.get_part_as_text('last')
+
+    if re.match('^(II|III|IV)$', lastname):
+        print("WARNING: Lineage is seen as lastname for ", person)
 
     if moves > 0:
         # Check if we can remove the {lastname}.
         if re.match('{[A-Za-z]*}', person.get_part_as_text('last')):
-            person._last[0] = person._last[0][1:]
-            person._last[-1] = person._last[-1][:-1]
+            assert len(person._last) == 1
+            person._last[0] = person._last[0][1:-1]
 
-        prelast = person.get_part_as_text('prelast')
         lastname = person.get_part_as_text('last')
-        print("Changed \"", orig_name, "\" to \"", prelast + ' ' + lastname, "\"", sep="")
+        lineage = person.get_part_as_text('lineage')
+        print("Changed \"", orig_name, "\" to \"", lastname + ', ' + lineage, "\"", sep="")
 
 
 def run(db):
     for entrykey, entry in db.entries.items():
         if 'author' in entry.persons:
             for author in entry.persons['author']:
-                fix_von_prefix_person(author)
+                fix_lineage(author)
 
 
 def main():
@@ -126,7 +118,7 @@ def main():
 
     run(db)
 
-    confs_years = get_confs_years_inter(db, confs_missing_years)
+    confs_years = get_confs_years_inter(db, config.confs_missing_years)
     write_database(preamble, db, confs_years, args.db)
 
 
