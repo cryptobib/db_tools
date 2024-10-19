@@ -4,29 +4,21 @@ This script needs to be run in the root folder containing the
 folders "lib" and "db"
 """
 
-import collections
-import sys
+import argparse
+import logging
 import os
+import re
+import sys
+
+from pybtex.bibtex.utils import split_name_list
 
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(scriptdir, "..", "lib"))
 sys.path.append(os.path.join(scriptdir, "..", "db"))
 
 import mybibtex.parser
-import mybibtex.database
 import mybibtex.generator
-import confs_years
-
-import argparse
-import logging
-import re
-import shutil
-import time
-
-from pybtex.bibtex.utils import split_name_list
-
 import config
-from config import *
 
 mybibtex.generator.config = config
 logging.basicConfig(level=logging.DEBUG)

@@ -4,8 +4,15 @@ This script needs to be run in the root folder containing the
 folders "lib" and "db"
 """
 
-import sys
+import argparse
+import json
+import logging
 import os
+import shutil
+import sys
+import time
+import urllib.parse
+import urllib.request
 
 scriptdir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(scriptdir, "..", "lib"))
@@ -15,14 +22,6 @@ import mybibtex.parser
 import mybibtex.database
 import mybibtex.generator
 import confs_years
-
-import logging
-import shutil
-import argparse
-import time
-import urllib.request, urllib.parse, urllib.error
-import urllib.request, urllib.error, urllib.parse
-import json
 
 import config
 from config import *
